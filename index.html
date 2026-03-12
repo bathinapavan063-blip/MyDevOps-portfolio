@@ -171,6 +171,33 @@
   .detail-link{color:var(--accent2);word-break:break-all;text-decoration:none;}
   .detail-link:hover{text-decoration:underline;}
 
+  /* EDIT BUTTON */
+  .card-btn.edit:hover{border-color:#a855f7;color:#a855f7;}
+
+  /* LIVE LEARNING PROGRESS */
+  .live-learning{margin-top:48px;padding-top:36px;border-top:1px solid var(--border);}
+  .live-learning-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+  .live-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);color:var(--green);font-size:.6rem;letter-spacing:2px;text-transform:uppercase;padding:3px 10px;border-radius:2px;}
+  .live-badge::before{content:'';width:5px;height:5px;background:var(--green);border-radius:50%;animation:pulse 1.5s infinite;}
+  .live-sub{font-size:.68rem;color:var(--muted);margin-bottom:24px;line-height:1.6;}
+  .live-progress-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .live-progress-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:18px;transition:all .3s;}
+  .live-progress-card:hover{border-color:rgba(56,189,248,.3);transform:translateY(-2px);}
+  .lp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .lp-icon-title{display:flex;align-items:center;gap:8px;}
+  .lp-icon{font-size:1.2rem;}
+  .lp-title{font-family:var(--font-head);font-size:.85rem;font-weight:700;}
+  .lp-pct{font-family:var(--font-head);font-size:1.1rem;font-weight:800;color:var(--accent2);}
+  .lp-bar-wrap{height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:8px;}
+  .lp-bar{height:100%;border-radius:3px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+  .lp-stats{display:flex;gap:10px;font-size:.6rem;color:var(--muted);}
+  .lp-stat{display:flex;align-items:center;gap:4px;}
+  .lp-stat-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .lp-summary{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:18px;margin-top:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
+  .lp-summary-stat{text-align:center;}
+  .lp-summary-num{font-family:var(--font-head);font-size:1.6rem;font-weight:800;color:var(--accent);}
+  .lp-summary-label{font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:3px;}
+
   footer{position:relative;z-index:1;text-align:center;padding:36px 40px;border-top:1px solid var(--border);color:var(--muted);font-size:.65rem;letter-spacing:2px;text-transform:uppercase;}
 
   @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
@@ -276,6 +303,21 @@
       <div class="progress-card"><div class="progress-label">Module</div><div class="progress-title">Monitoring & Logging</div><div class="progress-bar-wrap"><div class="progress-bar" style="width:20%"></div></div><div class="progress-pct">20%</div></div>
     </div>
   </div>
+
+  <!-- ═══ LIVE LEARNING PROGRESS (auto-calculated from projects) ═══ -->
+  <div class="live-learning" id="live-learning">
+    <div class="live-learning-header">
+      <div class="section-title">Live <span>Learning Progress</span></div>
+      <div class="live-badge">Live</div>
+    </div>
+    <p class="live-sub">Auto-calculated in real-time from your actual projects. Each tool/skill tracked below updates instantly when you add or complete projects.</p>
+    <div class="live-progress-grid" id="live-progress-grid">
+      <!-- rendered by JS -->
+    </div>
+    <div class="lp-summary" id="lp-summary">
+      <!-- rendered by JS -->
+    </div>
+  </div>
 </main>
 
 <footer>
@@ -366,6 +408,42 @@
   </div>
 </div>
 
+<!-- ═══ EDIT PROJECT MODAL ═══ -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h2>Edit <span>Project</span></h2>
+    <input type="hidden" id="e-id">
+    <div class="form-group"><label>Project Title *</label><input type="text" id="e-title" placeholder="e.g. EC2 Auto-Scaling Setup"></div>
+    <div class="form-group"><label>Description</label><textarea id="e-desc" rows="3" placeholder="What did you build? What did you learn?"></textarea></div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="e-category">
+        <option>EC2 / Compute</option><option>S3 / Storage</option><option>CI/CD</option>
+        <option>Docker / K8s</option><option>Networking / VPC</option><option>IAM / Security</option>
+        <option>Terraform / IaC</option><option>Monitoring</option><option>Lambda / Serverless</option><option>Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="e-status"><option>Completed</option><option>In Progress</option><option>Planned</option></select>
+    </div>
+    <div class="form-group"><label>GitHub / Project Link</label><input type="text" id="e-link" placeholder="https://github.com/yourname/project"></div>
+    <div class="form-group"><label>Notes / Key Learnings</label><textarea id="e-notes" rows="3" placeholder="Issues faced, commands used, key learnings..."></textarea></div>
+    <div class="form-group">
+      <label>Tags (AWS services used)</label>
+      <div class="tag-input-wrap">
+        <input type="text" id="e-tag-input" placeholder="e.g. EC2, S3, CodePipeline" onkeydown="if(event.key==='Enter'){addEditTag();event.preventDefault()}">
+        <button class="tag-add-btn" onclick="addEditTag()">+</button>
+      </div>
+      <div class="tags-preview" id="edit-tags-preview"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn-save" id="update-btn" onclick="updateProject()">💾 Save Changes</button>
+      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // ═══ CONFIG ═══════════════════════════════════════════════
   const BIN_ID  = '69a40d2b43b1c97be9a8e7cf';
@@ -376,7 +454,7 @@
   const ADMIN_PASS = 'Pavanlikitha@123';
 
   // 👥 SHARED PASSWORD — Give this to your 5 trusted users (full access)
-  const SHARED_PASS = 'Pavanlikitha@123';
+  const SHARED_PASS = 'ProjectLabs@2025';
   // ══════════════════════════════════════════════════════════
 
   const ICONS = {'EC2 / Compute':'🖥️','S3 / Storage':'🪣','CI/CD':'🔄','Docker / K8s':'🐳','Networking / VPC':'🌐','IAM / Security':'🔒','Terraform / IaC':'🏗️','Monitoring':'📊','Lambda / Serverless':'⚡','Other':'📦'};
@@ -445,7 +523,7 @@
       const data=await res.json();
       projects=data.record.projects||[];
       setLoading(100); setSyncStatus('synced','Synced ✓');
-      updateStats(); renderProjects();
+      updateStats(); renderProjects(); renderLiveProgress();
     } catch(e){
       setLoading(100); setSyncStatus('error','Offline');
       showToast('Could not load projects. Check internet.','error');
@@ -496,6 +574,7 @@
           <div class="card-actions">
             <button class="card-btn" onclick="viewProject('${p.id}')">View</button>
             ${p.link?`<a class="card-btn" href="${p.link}" target="_blank">GitHub</a>`:''}
+            ${isAdmin?`<button class="card-btn edit" onclick="openEditModal('${p.id}')">✏️ Edit</button>`:''}
             ${isAdmin?`<button class="card-btn delete" onclick="deleteProject('${p.id}')">Delete</button>`:''}
           </div>
         </div>
@@ -585,9 +664,171 @@
   // Close on overlay click
   document.querySelectorAll('.modal-overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('open');}));
 
+  // ── EDIT MODAL ────────────────────────────────────────────
+  let editTags = [];
+
+  function openEditModal(id){
+    if(!isAdmin){showToast('❌ Admin login required.','error');return;}
+    const p = projects.find(p=>p.id===id);
+    if(!p) return;
+    document.getElementById('e-id').value   = p.id;
+    document.getElementById('e-title').value = p.title;
+    document.getElementById('e-desc').value  = p.desc||'';
+    document.getElementById('e-link').value  = p.link||'';
+    document.getElementById('e-notes').value = p.notes||'';
+    // set category
+    const cat = document.getElementById('e-category');
+    for(let i=0;i<cat.options.length;i++) if(cat.options[i].value===p.category){cat.selectedIndex=i;break;}
+    // set status
+    const st = document.getElementById('e-status');
+    for(let i=0;i<st.options.length;i++) if(st.options[i].value===p.status){st.selectedIndex=i;break;}
+    // tags
+    editTags = [...(p.tags||[])];
+    refreshEditTags();
+    document.getElementById('edit-modal').classList.add('open');
+  }
+  function closeEditModal(){ document.getElementById('edit-modal').classList.remove('open'); }
+
+  function addEditTag(){
+    const inp=document.getElementById('e-tag-input');
+    const val=inp.value.trim();
+    if(!val||editTags.includes(val)){inp.value='';return;}
+    editTags.push(val); inp.value=''; refreshEditTags();
+  }
+  function removeEditTag(tag){ editTags=editTags.filter(t=>t!==tag); refreshEditTags(); }
+  function refreshEditTags(){
+    document.getElementById('edit-tags-preview').innerHTML=editTags.map(t=>`<span class="tag-pill">${t}<span class="rm" onclick="removeEditTag('${t}')">✕</span></span>`).join('');
+  }
+
+  async function updateProject(){
+    if(!isAdmin){showToast('❌ Admin login required.','error');return;}
+    const id    = document.getElementById('e-id').value;
+    const title = document.getElementById('e-title').value.trim();
+    if(!title){showToast('Title is required!','error');return;}
+    const idx = projects.findIndex(p=>p.id===id);
+    if(idx===-1){showToast('Project not found!','error');return;}
+    const btn = document.getElementById('update-btn');
+    btn.disabled=true; btn.textContent='⏳ Saving...';
+    const prev = {...projects[idx]};
+    projects[idx] = {
+      ...projects[idx],
+      title,
+      desc    : document.getElementById('e-desc').value.trim(),
+      category: document.getElementById('e-category').value,
+      status  : document.getElementById('e-status').value,
+      link    : document.getElementById('e-link').value.trim(),
+      notes   : document.getElementById('e-notes').value.trim(),
+      tags    : [...editTags],
+      edited  : new Date().toISOString().split('T')[0]
+    };
+    try{
+      await saveToCloud();
+      updateStats(); renderProjects(); renderLiveProgress();
+      closeEditModal();
+      showToast('✅ Project updated & synced!','success');
+    }catch(e){
+      projects[idx]=prev;
+      renderProjects();
+      showToast('❌ Update failed. Check internet.','error');
+      setSyncStatus('error','Update failed');
+    }finally{
+      btn.disabled=false; btn.textContent='💾 Save Changes';
+    }
+  }
+
+  // ── LIVE LEARNING PROGRESS ────────────────────────────────
+  // Maps tags/categories → skill buckets
+  const SKILL_MAP = [
+    { key:'Linux',    icon:'🐧', label:'Linux / Shell',       color:'#22c55e',
+      match: p => (p.tags||[]).some(t=>/linux|shell|bash|ssh/i.test(t)) },
+    { key:'AWS',      icon:'☁️', label:'AWS Services',        color:'#f97316',
+      match: p => (p.tags||[]).some(t=>/ec2|s3|vpc|iam|rds|lambda|aws|eks|ecr|cloudwatch|route53|elb|alb|sqs|sns/i.test(t)) || /EC2|S3|Lambda|IAM|Networking/i.test(p.category) },
+    { key:'CICD',     icon:'🔄', label:'CI/CD Pipelines',     color:'#38bdf8',
+      match: p => (p.tags||[]).some(t=>/jenkins|ci\/cd|pipeline|github.actions|codepipeline|cicd/i.test(t)) || p.category==='CI/CD' },
+    { key:'Docker',   icon:'🐳', label:'Docker',              color:'#38bdf8',
+      match: p => (p.tags||[]).some(t=>/docker|container|compose|dockerfile/i.test(t)) || /Docker/i.test(p.category) },
+    { key:'K8s',      icon:'⚙️', label:'Kubernetes',         color:'#a855f7',
+      match: p => (p.tags||[]).some(t=>/kubernetes|k8s|helm|eks|pod|deployment|ingress/i.test(t)) || /K8s/i.test(p.category) },
+    { key:'Terraform',icon:'🏗️', label:'Terraform / IaC',    color:'#eab308',
+      match: p => (p.tags||[]).some(t=>/terraform|iac|cloudformation|pulumi/i.test(t)) || p.category==='Terraform / IaC' },
+    { key:'Monitor',  icon:'📊', label:'Monitoring',          color:'#f97316',
+      match: p => (p.tags||[]).some(t=>/grafana|prometheus|cloudwatch|elk|kibana|monitor|logging|alert/i.test(t)) || p.category==='Monitoring' },
+    { key:'Security', icon:'🔒', label:'IAM / Security',      color:'#ef4444',
+      match: p => (p.tags||[]).some(t=>/iam|security|sso|policy|role|kms|secrets/i.test(t)) || p.category==='IAM / Security' },
+  ];
+
+  function renderLiveProgress(){
+    const grid    = document.getElementById('live-progress-grid');
+    const summary = document.getElementById('lp-summary');
+    if(!grid) return;
+    if(!projects.length){
+      grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);font-size:.75rem;">Add projects to see your live skill progress here.</div>';
+      summary.innerHTML='';
+      return;
+    }
+
+    const totalProj   = projects.length;
+    const completedProj = projects.filter(p=>p.status==='Completed').length;
+    const inProgressProj = projects.filter(p=>p.status==='In Progress').length;
+
+    let html = '';
+    SKILL_MAP.forEach(skill=>{
+      const matched      = projects.filter(skill.match);
+      const done         = matched.filter(p=>p.status==='Completed').length;
+      const wip          = matched.filter(p=>p.status==='In Progress').length;
+      const planned      = matched.filter(p=>p.status==='Planned').length;
+      const total        = matched.length;
+      if(total===0) return; // only show skills that have at least 1 project
+
+      // pct: completed = 100%, In Progress = 50%, Planned = 10%
+      const rawScore  = done*100 + wip*50 + planned*10;
+      const maxScore  = total*100;
+      const pct       = Math.round(rawScore/maxScore*100);
+
+      html += `<div class="live-progress-card">
+        <div class="lp-top">
+          <div class="lp-icon-title">
+            <span class="lp-icon">${skill.icon}</span>
+            <span class="lp-title">${skill.label}</span>
+          </div>
+          <span class="lp-pct" style="color:${skill.color}">${pct}%</span>
+        </div>
+        <div class="lp-bar-wrap">
+          <div class="lp-bar" style="width:${pct}%;background:linear-gradient(90deg,${skill.color},${skill.color}99)"></div>
+        </div>
+        <div class="lp-stats">
+          <span class="lp-stat"><span class="lp-stat-dot" style="background:var(--green)"></span>${done} done</span>
+          <span class="lp-stat"><span class="lp-stat-dot" style="background:var(--accent)"></span>${wip} wip</span>
+          <span class="lp-stat"><span class="lp-stat-dot" style="background:var(--muted)"></span>${planned} planned</span>
+          <span class="lp-stat" style="margin-left:auto;color:var(--muted)">${total} project${total!==1?'s':''}</span>
+        </div>
+      </div>`;
+    });
+
+    grid.innerHTML = html || '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted);font-size:.75rem;">No recognised DevOps tools found in your project tags yet. Add tags like EC2, Docker, Jenkins, etc.</div>';
+
+    // Overall summary bar
+    const overallPct = totalProj ? Math.round(completedProj/totalProj*100) : 0;
+    const skillsActive = SKILL_MAP.filter(s=>projects.some(s.match)).length;
+    summary.innerHTML=`
+      <div class="lp-summary-stat"><div class="lp-summary-num">${totalProj}</div><div class="lp-summary-label">Total Projects</div></div>
+      <div class="lp-summary-stat"><div class="lp-summary-num" style="color:var(--green)">${completedProj}</div><div class="lp-summary-label">Completed</div></div>
+      <div class="lp-summary-stat"><div class="lp-summary-num" style="color:var(--accent)">${inProgressProj}</div><div class="lp-summary-label">In Progress</div></div>
+      <div class="lp-summary-stat"><div class="lp-summary-num" style="color:var(--accent2)">${skillsActive}</div><div class="lp-summary-label">Skills Active</div></div>
+      <div style="flex:1;min-width:180px;">
+        <div style="font-size:.6rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Overall Completion</div>
+        <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+          <div style="height:100%;width:${overallPct}%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width 1.2s ease;"></div>
+        </div>
+        <div style="font-size:.65rem;color:var(--accent2);margin-top:4px;text-align:right;">${overallPct}%</div>
+      </div>`;
+  }
+
   // ── INIT ──────────────────────────────────────────────────
   checkSession();
   loadProjects();
+  renderLiveProgress();
 </script>
 </body>
 </html>
+
